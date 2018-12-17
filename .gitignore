@@ -1,0 +1,12 @@
+*.o
+*.o.cmd
+src/os/linux/Makefile
+src/tools/bin2h
+
+#build
+src/os/linux/.mt7601Usta.ko.cmd
+src/os/linux/.tmp_versions/
+src/os/linux/Module.symvers
+src/os/linux/modules.order
+src/os/linux/mt7601Usta.ko
+src/os/linux/mt7601Usta.mod.c
