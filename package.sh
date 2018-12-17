@@ -12,7 +12,7 @@ else
 	dpkg_arch="amd64"
 fi
 
-package="rtl8788CU"
+package="rtl8788cu"
 base_dir="./"
 
 if [ -f ${base_dir}src/8821cu.ko ] ; then
@@ -31,9 +31,7 @@ if [ -f ${base_dir}src/8821cu.ko ] ; then
 	echo "Maintainer: Robert Nelson <robertcnelson@gmail.com>" >> ${base_dir}control
 	echo "Architecture: ${dpkg_arch}" >> ${base_dir}control
 	echo "Readme: README.md" >> ${base_dir}control
-	echo "Files: 8723bu.ko /lib/modules/${uname_r}/kernel/drivers/net/wireless/" >> ${base_dir}control
-	#echo " RT2870STA.dat /etc/Wireless/RT2870STA/" >> ${base_dir}control
-	#echo " mt7601.conf /etc/modules-load.d/" >> ${base_dir}control
+	echo "Files: 8821cu.ko /lib/modules/${uname_r}/kernel/drivers/net/wireless/" >> ${base_dir}control
 	echo "Description: ${package} modules" >> ${base_dir}control
 	echo " Kernel modules for ${package} devices" >> ${base_dir}control
 	echo "" >> ${base_dir}control
