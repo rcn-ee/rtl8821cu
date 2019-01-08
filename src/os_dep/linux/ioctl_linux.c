@@ -180,8 +180,10 @@ static void request_wps_pbc_event(_adapter *padapter)
 	wireless_send_event(padapter->pnetdev, IWEVCUSTOM, &wrqu, buff);
 #endif
 
-	if (buff)
+	if(buff)
+	{
 		rtw_mfree(buff, IW_CUSTOM_MAX);
+	}
 
 }
 
