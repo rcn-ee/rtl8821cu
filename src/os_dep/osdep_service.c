@@ -2094,8 +2094,7 @@ static int isFileReadable(const char *path, u32 *sz)
 	if (IS_ERR(fp))
 		ret = PTR_ERR(fp);
 	else {
-		oldfs = get_fs();
-		set_fs(get_ds());
+		oldfs = get_fs(); set_fs(KERNEL_DS);
 
 		if (1 != readFile(fp, &buf, 1))
 			ret = PTR_ERR(fp);
@@ -2132,9 +2131,8 @@ static int retriveFromFile(const char *path, u8 *buf, u32 sz)
 		if (0 == ret) {
 			RTW_INFO("%s openFile path:%s fp=%p\n", __FUNCTION__, path , fp);
 
-			oldfs = get_fs();
-			set_fs(get_ds());
-			ret = readFile(fp, buf, sz);
+			oldfs = get_fs(); set_fs(KERNEL_DS);
+			ret=readFile(fp, buf, sz);
 			set_fs(oldfs);
 			closeFile(fp);
 
@@ -2167,9 +2165,8 @@ static int storeToFile(const char *path, u8 *buf, u32 sz)
 		if (0 == ret) {
 			RTW_INFO("%s openFile path:%s fp=%p\n", __FUNCTION__, path , fp);
 
-			oldfs = get_fs();
-			set_fs(get_ds());
-			ret = writeFile(fp, buf, sz);
+			oldfs = get_fs(); set_fs(KERNEL_DS);
+			ret=writeFile(fp, buf, sz);
 			set_fs(oldfs);
 			closeFile(fp);
 
