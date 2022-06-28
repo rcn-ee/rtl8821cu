@@ -1,5 +1,23 @@
 # rtl8821CU
-[![Build Status](https://travis-ci.org/whitebatman2/rtl8821CU.svg?branch=master)](https://travis-ci.org/whitebatman2/rtl8821CU)
+
+## Current state
+
+Target platform list (x86-64 only):
+
+
+Ubutnu 18.04 + Linux 5.0 - compiled, worked (interface connected)
+
+Ubuntu 20.04.3 + Linux 5.4 - compiled, worked (interface connected)
+
+Ubuntu 20.04.3 + Linux 5.8 - compiled, worked (interface connected)
+
+Ubuntu 20.04.3 + Linux 5.11 - ?
+
+
+Common speedtest results: download speed ~ 0.05 - 0.07 Mbit/s, upload speed ~ 0.5 = 0.7 Mbit/s. Sad...
+
+
+## Original build instruction:
 
 Drivers for rtl8811CU and rtl8821CU Wi-Fi chipsets. This repository is based on soruce code found on a CD shipped with a rtl8811CU based card. It's updated to build on newer kernel versions.
 

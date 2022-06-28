@@ -2134,8 +2134,14 @@ BIP_exit:
 #endif /* CONFIG_IEEE80211W */
 
 #ifndef PLATFORM_FREEBSD
-/* compress 512-bits */
-static int sha256_compress(struct sha256_state *md, unsigned char *buf)
+#ifdef USE_KERNEL_SHA256
+	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0))
+		#include <crypto/sha2.h>
+	#else
+		#include <crypto/sha.h>
+	#endif
+#else
+static void sha256_compress(struct sha256_state *md, unsigned char *buf)
 {
 	u32 S[8], W[64], t0, t1;
 	u32 t;
@@ -2179,13 +2185,10 @@ static int sha256_compress(struct sha256_state *md, unsigned char *buf)
 	/* feedback */
 	for (i = 0; i < 8; i++)
 		md->state[i] = md->state[i] + S[i];
-	return 0;
 }
 
-/* Initialize the hash state */
 static void sha256_init(struct sha256_state *md)
 {
-	md->curlen = 0;
 	md->length = 0;
 	md->state[0] = 0x6A09E667UL;
 	md->state[1] = 0xBB67AE85UL;
@@ -2197,92 +2200,66 @@ static void sha256_init(struct sha256_state *md)
 	md->state[7] = 0x5BE0CD19UL;
 }
 
-/**
-   Process a block of memory though the hash
-   @param md     The hash state
-   @param in     The data to hash
-   @param inlen  The length of the data (octets)
-   @return CRYPT_OK if successful
-*/
-static int sha256_process(struct sha256_state *md, unsigned char *in,
-			  unsigned long inlen)
+static void sha256_update(struct sha256_state *sctx, const u8 *data, unsigned int len)
 {
-	unsigned long n;
-#define block_size 64
+	unsigned int partial, done;
+	const u8 *src;
 
-	if (md->curlen > sizeof(md->buf))
-		return -1;
+	partial = sctx->count & 0x3f;
+	sctx->count += len;
+	done = 0;
+	src = data;
 
-	while (inlen > 0) {
-		if (md->curlen == 0 && inlen >= block_size) {
-			if (sha256_compress(md, (unsigned char *) in) < 0)
-				return -1;
-			md->length += block_size * 8;
-			in += block_size;
-			inlen -= block_size;
-		} else {
-			n = MIN(inlen, (block_size - md->curlen));
-			_rtw_memcpy(md->buf + md->curlen, in, n);
-			md->curlen += n;
-			in += n;
-			inlen -= n;
-			if (md->curlen == block_size) {
-				if (sha256_compress(md, md->buf) < 0)
-					return -1;
-				md->length += 8 * block_size;
-				md->curlen = 0;
-			}
+	if ((partial + len) > 63) {
+		if (partial) {
+			done = -partial;
+			memcpy(sctx->buf + partial, data, done + 64);
+			src = sctx->buf;
 		}
-	}
 
-	return 0;
+		do {
+			sha256_compress(sctx->state, src);
+			done += 64;
+			src = data + done;
+		} while (done + 63 < len);
+
+		partial = 0;
+	}
+	memcpy(sctx->buf + partial, src, len - done);
 }
 
-
-/**
-   Terminate the hash to get the digest
-   @param md  The hash state
-   @param out [out] The destination of the hash (32 bytes)
-   @return CRYPT_OK if successful
-*/
-static int sha256_done(struct sha256_state *md, unsigned char *out)
+static void sha256_final(struct sha256_state *sctx, u8 *out)
 {
-	int i;
-
-	if (md->curlen >= sizeof(md->buf))
-		return -1;
-
-	/* increase the length of the message */
-	md->length += md->curlen * 8;
-
-	/* append the '1' bit */
-	md->buf[md->curlen++] = (unsigned char) 0x80;
-
-	/* if the length is currently above 56 bytes we append zeros
-	 * then compress.  Then we can fall back to padding zeros and length
-	 * encoding like normal.
-	 */
-	if (md->curlen > 56) {
-		while (md->curlen < 64)
-			md->buf[md->curlen++] = (unsigned char) 0;
-		sha256_compress(md, md->buf);
-		md->curlen = 0;
-	}
-
-	/* pad upto 56 bytes of zeroes */
-	while (md->curlen < 56)
-		md->buf[md->curlen++] = (unsigned char) 0;
-
-	/* store length */
-	WPA_PUT_BE64(md->buf + 56, md->length);
-	sha256_compress(md, md->buf);
-
-	/* copy output */
-	for (i = 0; i < 8; i++)
-		WPA_PUT_BE32(out + (4 * i), md->state[i]);
-
-	return 0;
+	__sha256_final(sctx, out, 8);
 }
+
+static void __sha256_final(struct sha256_state *sctx, u8 *out, int digest_words)
+{
+	__be32 *dst = (__be32 *)out;
+	__be64 bits;
+	unsigned int index, pad_len;
+	int i;
+	static const u8 padding[64] = { 0x80, };
+
+	/* Save number of bits */
+	bits = cpu_to_be64(sctx->count << 3);
+
+	/* Pad out to 56 mod 64. */
+	index = sctx->count & 0x3f;
+	pad_len = (index < 56) ? (56 - index) : ((64+56) - index);
+	sha256_update(sctx, padding, pad_len);
+
+	/* Append length (before padding) */
+	sha256_update(sctx, (const u8 *)&bits, sizeof(bits));
+
+	/* Store state in digest */
+	for (i = 0; i < digest_words; i++)
+		put_unaligned_be32(sctx->state[i], &dst[i]);
+
+	/* Zeroize sensitive information. */
+	memset(sctx, 0, sizeof(*sctx));
+}
+#endif
 
 /**
  * sha256_vector - SHA256 hash for data vector
@@ -2300,10 +2277,8 @@ static int sha256_vector(size_t num_elem, u8 *addr[], size_t *len,
 
 	sha256_init(&ctx);
 	for (i = 0; i < num_elem; i++)
-		if (sha256_process(&ctx, addr[i], len[i]))
-			return -1;
-	if (sha256_done(&ctx, mac))
-		return -1;
+		sha256_update(&ctx, addr[i], len[i]);
+	sha256_final(&ctx, mac);
 	return 0;
 }
 

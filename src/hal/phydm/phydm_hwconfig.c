@@ -965,7 +965,7 @@ odm_rx_phy_status_jaguar_series_parsing(
 {
 	u8					i, max_spatial_stream;
 	s8					rx_pwr[4], rx_pwr_all = 0;
-	u8					EVM, evm_dbm, PWDB_ALL = 0, PWDB_ALL_BT;
+	u8					EVM = 0, evm_dbm, PWDB_ALL = 0, PWDB_ALL_BT;
 	u8					RSSI, avg_rssi = 0, best_rssi = 0, second_rssi = 0;
 	u8					is_cck_rate = 0;
 	u8					rf_rx_num = 0;

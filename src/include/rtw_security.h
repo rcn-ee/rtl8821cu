@@ -245,11 +245,22 @@ struct security_priv {
 #endif /* DBG_SW_SEC_CNT */
 };
 
+#ifdef __KERNEL__
+	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+		#define USE_KERNEL_SHA256
+	#endif
+#endif
+
+#ifndef USE_KERNEL_SHA256
+#define SHA256_DIGEST_SIZE      32
+#define SHA256_BLOCK_SIZE       64
+
 struct sha256_state {
-	u64 length;
-	u32 state[8], curlen;
-	u8 buf[64];
+	u32 state[SHA256_DIGEST_SIZE / 4];
+	u64 count;
+	u8 buf[SHA256_BLOCK_SIZE];
 };
+#endif
 
 #define GET_ENCRY_ALGO(psecuritypriv, psta, encry_algo, bmcst)\
 	do {\

@@ -348,9 +348,8 @@ int rtw_android_pno_enable(struct net_device *net, int pno_enable)
 			}
 		}
 		return 0;
-	} else {
+	} else
 		return -1;
-	}
 }
 #endif /* CONFIG_PNO_SUPPORT */
 
@@ -789,8 +788,7 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		break;
 
 #ifdef CONFIG_IOCTL_CFG80211
-	case ANDROID_WIFI_CMD_SET_AP_WPS_P2P_IE:
-	{
+	case ANDROID_WIFI_CMD_SET_AP_WPS_P2P_IE: {
 		int skip = strlen(android_wifi_cmd_str[ANDROID_WIFI_CMD_SET_AP_WPS_P2P_IE]) + 3;
 		bytes_written = rtw_cfg80211_set_mgnt_wpsp2pie(net, command + skip, priv_cmd.total_len - skip, *(command + skip - 2) - '0');
 		break;
@@ -913,24 +911,20 @@ response:
 		if (bytes_written >= priv_cmd.total_len) {
 			RTW_INFO("%s: bytes_written = %d\n", __FUNCTION__, bytes_written);
 			bytes_written = priv_cmd.total_len;
-		} else {
+		} else
 			bytes_written++;
-		}
 		priv_cmd.used_len = bytes_written;
 		if (copy_to_user((void *)priv_cmd.buf, command, bytes_written)) {
 			RTW_INFO("%s: failed to copy data to user buffer\n", __FUNCTION__);
 			ret = -EFAULT;
 		}
-	}
-	else {
+	} else
 		ret = bytes_written;
-	}
 
 exit:
 	rtw_unlock_suspend();
-	if (command) {
+	if (command)
 		rtw_mfree(command, priv_cmd.total_len);
-	}
 
 	return ret;
 }
@@ -972,8 +966,7 @@ int rtw_android_wifictrl_func_add(void)
 
 void rtw_android_wifictrl_func_del(void)
 {
-	if (g_wifidev_registered)
-	{
+	if (g_wifidev_registered) {
 		wifi_del_dev();
 		g_wifidev_registered = 0;
 	}
@@ -1012,9 +1005,8 @@ int wifi_get_irq_number(unsigned long *irq_flags_ptr)
 int wifi_set_power(int on, unsigned long msec)
 {
 	RTW_INFO("%s = %d\n", __FUNCTION__, on);
-	if (wifi_control_data && wifi_control_data->set_power) {
+	if (wifi_control_data && wifi_control_data->set_power)
 		wifi_control_data->set_power(on);
-	}
 	if (msec)
 		msleep(msec);
 	return 0;
@@ -1028,8 +1020,6 @@ int wifi_get_mac_addr(unsigned char *buf)
 		return -EINVAL;
 	if (wifi_control_data && wifi_control_data->get_mac_addr)
 		return wifi_control_data->get_mac_addr(buf);
-	}
-	pr_info("%s - failed\n", __func__);
 	return -EOPNOTSUPP;
 }
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 35)) */
@@ -1040,9 +1030,8 @@ void *wifi_get_country_code(char *ccode)
 	RTW_INFO("%s\n", __FUNCTION__);
 	if (!ccode)
 		return NULL;
-	if (wifi_control_data && wifi_control_data->get_country_code) {
+	if (wifi_control_data && wifi_control_data->get_country_code)
 		return wifi_control_data->get_country_code(ccode);
-	}
 	return NULL;
 }
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)) */
@@ -1050,9 +1039,8 @@ void *wifi_get_country_code(char *ccode)
 static int wifi_set_carddetect(int on)
 {
 	RTW_INFO("%s = %d\n", __FUNCTION__, on);
-	if (wifi_control_data && wifi_control_data->set_carddetect) {
+	if (wifi_control_data && wifi_control_data->set_carddetect)
 		wifi_control_data->set_carddetect(on);
-	}
 	return 0;
 }
 
@@ -1084,9 +1072,7 @@ static int wifi_probe(struct platform_device *pdev)
 		oob_irq = gpio_to_irq(wifi_wake_gpio);
 #endif /* CONFIG_PLATFORM_INTEL_BYT */
 		printk("%s oob_irq:%d\n", __func__, oob_irq);
-	}
-	else if(wifi_irqres)
-	{
+	} else if (wifi_irqres) {
 		oob_irq = wifi_irqres->start;
 		printk("%s oob_irq:%d\n", __func__, oob_irq);
 	}
@@ -1108,8 +1094,7 @@ static void shutdown_card(void)
 	u32 addr;
 	u8 tmp8, cnt = 0;
 
-	if (NULL == g_test_adapter)
-	{
+	if (NULL == g_test_adapter) {
 		RTW_INFO("%s: padapter==NULL\n", __FUNCTION__);
 		return;
 	}
@@ -1239,7 +1224,7 @@ static struct platform_driver wifi_device_legacy = {
 	.suspend        = wifi_suspend,
 	.resume         = wifi_resume,
 	.driver         = {
-	.name   = "bcm4329_wlan",
+		.name   = "bcm4329_wlan",
 	}
 };
 

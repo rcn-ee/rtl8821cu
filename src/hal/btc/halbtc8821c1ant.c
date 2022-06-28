@@ -2330,11 +2330,11 @@ void halbtc8821c1ant_set_ext_ant_switch(IN struct btc_coexist *btcoexist,
 	/*  Normal switch polarity for DPDT, 0xcb4[29:28] = 2b'01 => BTG to Main, WLG to Aux,  0xcb4[29:28] = 2b'10 => BTG to Aux, WLG to Main */
 	/*  Normal switch polarity for SPDT, 0xcb4[29:28] = 2b'01 => Ant to BTG,  0xcb4[29:28] = 2b'10 => Ant to WLG */
 	if (rfe_type->ext_ant_switch_ctrl_polarity)
-		switch_polatiry_inverse =  ~switch_polatiry_inverse;
+		switch_polatiry_inverse =  !switch_polatiry_inverse;
 
 	/* swap control polarity if 1-Ant at Aux */
 	if (rfe_type->ant_at_main_port == FALSE)
-		switch_polatiry_inverse =  ~switch_polatiry_inverse;
+		switch_polatiry_inverse =  !switch_polatiry_inverse;
 
 	switch (pos_type) {
 	default:
@@ -2345,7 +2345,7 @@ void halbtc8821c1ant_set_ext_ant_switch(IN struct btc_coexist *btcoexist,
 		break;
 	case BT_8821C_1ANT_EXT_ANT_SWITCH_TO_WLG:
 		if (!rfe_type->wlg_Locate_at_btg)
-			switch_polatiry_inverse =  ~switch_polatiry_inverse;
+			switch_polatiry_inverse =  !switch_polatiry_inverse;
 		break;
 	}
 

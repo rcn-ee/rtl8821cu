@@ -5901,7 +5901,11 @@ static void cfg80211_rtw_mgmt_frame_register(struct wiphy *wiphy,
 #else
 	struct net_device *ndev,
 #endif
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0))
+	struct mgmt_frame_regs *upd)
+#else
 	u16 frame_type, bool reg)
+#endif
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 6, 0))
 	struct net_device *ndev = wdev_to_ndev(wdev);
@@ -5921,9 +5925,9 @@ static void cfg80211_rtw_mgmt_frame_register(struct wiphy *wiphy,
 		frame_type, reg);
 #endif
 
-	/* Wait QC Verify */
-	return;
-
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0))
+	pwdev_priv->report_mgmt = upd->interface_stypes;
+#else
 	switch (frame_type) {
 	case IEEE80211_STYPE_PROBE_REQ: /* 0x0040 */
 		SET_CFG80211_REPORT_MGMT(pwdev_priv, IEEE80211_STYPE_PROBE_REQ, reg);
@@ -5934,6 +5938,7 @@ static void cfg80211_rtw_mgmt_frame_register(struct wiphy *wiphy,
 	default:
 		break;
 	}
+#endif
 
 exit:
 	return;
@@ -6880,7 +6885,10 @@ static struct cfg80211_ops rtw_cfg80211_ops = {
 	.update_ft_ies = cfg80211_rtw_update_ft_ies,
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) || defined(COMPAT_KERNEL_RELEASE)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0))
+	.mgmt_tx = cfg80211_rtw_mgmt_tx,
+	.update_mgmt_frame_registrations = cfg80211_rtw_mgmt_frame_register,
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) || defined(COMPAT_KERNEL_RELEASE)
 	.mgmt_tx = cfg80211_rtw_mgmt_tx,
 	.mgmt_frame_register = cfg80211_rtw_mgmt_frame_register,
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 34) && LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 35))

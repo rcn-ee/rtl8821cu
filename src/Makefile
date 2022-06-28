@@ -1,4 +1,5 @@
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS)
+EXTRA_CFLAGS := -std=gnu99
 EXTRA_CFLAGS += -O1
 #EXTRA_CFLAGS += -O3
 #EXTRA_CFLAGS += -Wall
@@ -15,6 +16,8 @@ EXTRA_CFLAGS += -Wno-unused-function
 EXTRA_CFLAGS += -Wno-unused
 #EXTRA_CFLAGS += -Wno-uninitialized
 EXTRA_CFLAGS += -Wno-incompatible-pointer-types
+EXTRA_CFLAGS += -Wno-vla
+EXTRA_CFLAGS += -Wno-implicit-fallthrough
 
 GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 ifeq ($(GCC_VER_49),1)
